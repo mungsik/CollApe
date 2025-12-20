@@ -4,8 +4,6 @@ from playwright.async_api import async_playwright, Browser, Page, Playwright
 class BaseCrawler(ABC):
     """Base class for all crawlers"""
 
-    BASE_URL: str = ""
-
     def __init__(self, headless: bool = False):
         self.headless = headless
         self.browser: Browser | None = None
