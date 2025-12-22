@@ -48,7 +48,7 @@ class FarfetchCrawler(BaseCrawler):
                 products.append(product)
 
             except Exception as e:
-                print(f"상품 파싱 오류: {e}")
+                print(f"크롤링 에러: {e}")
                 continue
 
         await page.close()
