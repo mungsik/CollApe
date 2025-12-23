@@ -3,15 +3,17 @@ from dataclasses import dataclass
 from playwright.async_api import async_playwright, Browser, Page, Playwright
 
 @dataclass
-class Product:
-    name: str
-    brand: str
-    price: str
-    url: str
-    image_url: str | None = None
+class ProductItem:
+    """DB 적재용 상품 데이터"""
+    brand: str      # 브랜드명
+    name: str       # 제품명
+    size: str       # 제품 사이즈
+    price: str      # 제품 가격
+    note: str       # 비고 ex. 마지막 수량, 관부가세 포함
+    url: str        # 제품 URL
 
 class BaseCrawler(ABC):
-    """Base class for all crawlers"""
+    """크롤러 기본 메소드 정의"""
 
     def __init__(self, headless: bool = False):
         self.headless = headless
