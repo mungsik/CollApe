@@ -67,8 +67,10 @@ class FarfetchCrawler(BaseCrawler):
 
         size_prices = []
 
-        # 기본 가격
-        base_price_elem = await page.query_selector('p[data-component="Body"].ltr-137vk2a-Body')
+        # 가격 (할인가 우선, 없으면 정가)
+        base_price_elem = await page.query_selector('[data-component="PriceFinal"]')
+        if not base_price_elem:
+            base_price_elem = await page.query_selector('p[data-component="Body"].ltr-137vk2a-Body')
         base_price = await base_price_elem.inner_text() if base_price_elem else "Unknown"
         base_price = base_price.strip().replace('\xa0', ' ')
 
@@ -126,15 +128,13 @@ class FarfetchCrawler(BaseCrawler):
         return size_prices
 
     async def crawl_all(self, list_url: str) -> list[ProductItem]:
-        """목록 → 상세 페이지 크롤링하여 DB 적재용 데이터 반환"""
+        """상세 페이지 크롤링"""
         results = []
 
-        # 1. 목록에서 상품 URL 가져오기
         print("목록 페이지 크롤링 중...")
         products = await self.get_product_urls(list_url)
         print(f"{len(products)}개 상품 발견\n")
 
-        # 2. 각 상품 상세 페이지 크롤링
         for i, product in enumerate(products, 1):
             print(f"[{i}/{len(products)}] {product['brand']} - {product['name']}")
 

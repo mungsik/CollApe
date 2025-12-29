@@ -3,15 +3,7 @@ from crawling.base import ProductItem
 
 
 def save_products(items: list[ProductItem], source: str = "") -> dict:
-    """크롤링 데이터 Supabase에 저장
-
-    Args:
-        items: ProductItem 리스트
-        source: 크롤링 출처 (farfetch, zara 등)
-
-    Returns:
-        Supabase 응답
-    """
+    """크롤링 데이터 Supabase에 저장"""
     if not items:
         return {"data": [], "count": 0}
 
