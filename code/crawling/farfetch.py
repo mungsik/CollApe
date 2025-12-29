@@ -2,6 +2,7 @@ import asyncio
 import sys
 from crawling.base import BaseCrawler, ProductItem
 from crawling.utils import random_delay
+from db import save_products
 
 '''
 windows 콘솔 기본 인코딩 = cp949
@@ -152,7 +153,7 @@ class FarfetchCrawler(BaseCrawler):
                     results.append(item)
 
             except Exception as e:
-                print(f"  상세 크롤링 에러: {e}")
+                print(f"crawling error: {e}")
                 continue
 
         return results
@@ -166,6 +167,13 @@ async def main(url: str):
         for item in items[:10]:
             note = f" ({item.note})" if item.note else ""
             print(f"{item.brand} | {item.name} | {item.size} | {item.price}{note}")
+
+        if items:
+            try:
+                result = save_products(items, source="farfetch")
+                print(f"\nSupabase 저장 완료: {len(result.data)}개")
+            except Exception as e:
+                print(f"\nSupabase 저장 실패: {e}")
 
 if __name__ == "__main__":
     target_url = "https://www.farfetch.com/kr/shopping/men/clothing-2/items.aspx"
