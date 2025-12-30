@@ -45,6 +45,10 @@ class FarfetchCrawler(BaseCrawler):
                 href = await link_elem.get_attribute('href') if link_elem else ""
                 product_url = f"https://www.farfetch.com{href}" if href else ""
 
+                # URL이 없으면 스킵 
+                if not product_url:
+                    continue
+
                 products.append({
                     "brand": brand.strip(),
                     "name": name.strip(),
@@ -68,9 +72,9 @@ class FarfetchCrawler(BaseCrawler):
         size_prices = []
 
         # 가격 (할인가 우선, 없으면 정가)
-        base_price_elem = await page.query_selector('[data-component="PriceFinal"]')
+        base_price_elem = await page.query_selector('[data-component="PriceFinal"]') # 할인가
         if not base_price_elem:
-            base_price_elem = await page.query_selector('p[data-component="Body"].ltr-137vk2a-Body')
+            base_price_elem = await page.query_selector('p[data-component="Body"].ltr-137vk2a-Body') # 정가
         base_price = await base_price_elem.inner_text() if base_price_elem else "Unknown"
         base_price = base_price.strip().replace('\xa0', ' ')
 
@@ -92,20 +96,24 @@ class FarfetchCrawler(BaseCrawler):
         await page.wait_for_timeout(random_delay(300, 700))
 
         options = await page.query_selector_all('[data-component="SizeSelectorOption"]')
+        option_count = len(options)
 
-        for option in options:
+        for i in range(option_count):
+            # 드롭다운 다시 열기
+            if i > 0:
+                dropdown = await page.query_selector('[data-component="SizeSelectorLabel"]')
+                await dropdown.click()
+                await page.wait_for_selector('[data-component="SizeSelectorOption"]', timeout=5000)
+                await page.wait_for_timeout(random_delay(300, 700))
+                options = await page.query_selector_all('[data-component="SizeSelectorOption"]')
+
+            option = options[i]
+
+            # 사이즈명 먼저 가져오기
             size_elem = await option.query_selector('[data-component="SizeSelectorOptionSize"]')
             size = await size_elem.inner_text() if size_elem else "Unknown"
 
-            # 사이즈별 가격 (없으면 기본 가격)
-            price_elem = await option.query_selector('[data-component="DropdownOptionWrapper"]')
-            if price_elem:
-                price = await price_elem.inner_text()
-                price = price.strip().replace('\xa0', ' ')
-            if not price_elem or not price:
-                price = base_price
-
-            # 비고
+            # 비고 (옵션 내)
             notes = []
             label_elem = await option.query_selector('[data-component="SizeSelectorOptionLabel"]')
             if label_elem:
@@ -113,6 +121,19 @@ class FarfetchCrawler(BaseCrawler):
                 if label_text.strip():
                     notes.append(label_text.strip().replace('\xa0', ' '))
 
+            # 사이즈 클릭
+            await option.click()
+            await page.wait_for_timeout(random_delay(300, 500))
+
+            # 상단의 PriceFinal에서 가격 가져오기
+            price_elem = await page.query_selector('[data-component="PriceFinal"]')
+            if price_elem:
+                price = await price_elem.inner_text()
+                price = price.strip().replace('\xa0', ' ')
+            else:
+                price = base_price
+
+            # 상단의 비고
             if base_footnote:
                 notes.append(base_footnote)
 
