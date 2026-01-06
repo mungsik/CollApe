@@ -16,6 +16,7 @@ def save_products(items: list[ProductItem], source: str = "") -> dict:
             "note": item.note,
             "url": item.url,
             "source": source,
+            "farfetch_images": item.images,
         }
         for item in items
     ]
